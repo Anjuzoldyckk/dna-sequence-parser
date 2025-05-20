@@ -1,17 +1,21 @@
 import os
 import sys
+import re
 def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
   current_seq = ""
   seqs = []
+  headers=[]
   with open(file,'r') as r:
     for line in r:
       line=line.strip()
       if line.startswith(">"):
+        headers.append(line[1:])
         if current_seq:
           seqs.append(current_seq)
         current_seq = ""
       else:
-        current_seq += line
+        cleaned = re.sub(r'[^ATGCatgc]', '', line)
+        current_seq += cleaned
     if current_seq: #for adding last seq in current seq
       seqs.append(current_seq)
     final_seq = "".join(seqs)
@@ -44,12 +48,14 @@ def at_content(seq):
   at_percent = (at_fraction * 100)
   return round(at_fraction, 4), f"{at_percent:.2f}%"
 
-def analyze_seq(sequence: str)->str: # u have to call it multiple times if the fasta read result is a list
+def analyze_seq(sequence: str)-> None:
+  #it gets called multiple times if the fasta read result is a list,
+  #it return none for now but later if u want to use for graphs and all u have to denote that it returns a dict
   sequence = sequence.upper().strip()
   length = len(sequence)
   if length == 0:
-    print("empty sequence bro!!")
-    return
+        print("empty sequence bro!!")
+        return
   a = sequence.count('A')
   t = sequence.count('T')
   g = sequence.count('G')
@@ -79,6 +85,12 @@ if __name__ == "__main__":
     sys.exit()
   x = int(input("hello :)\nif u want individual seq then enter 1 or if u want all seqs in the file combined then enter 2 : "))
   reading_fasta_result = read_fasta(file_fasta, x)
+  if isinstance(reading_fasta_result, list) and len(reading_fasta_result) == 0:
+      print("empty sequence bro!!")
+      sys.exit()
+  if isinstance(reading_fasta_result, str) and reading_fasta_result.strip() == "":
+      print("empty sequence bro!!")
+      sys.exit()
   if isinstance(reading_fasta_result, list):
     for i, seq in enumerate(reading_fasta_result):
       print(f"---Sequence {i + 1}---")
@@ -86,6 +98,6 @@ if __name__ == "__main__":
   else:
     analyze_seq(reading_fasta_result)
 
-# edit dealing with empty files along with using regex to filter wild cases and returning dic so i can plot or output it in csv instead of js printing
+# returning dic so i can plot or output it in csv instead of js printing maybe make empty seq fun later
 
     
