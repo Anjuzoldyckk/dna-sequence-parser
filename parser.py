@@ -1,6 +1,8 @@
 import os
 import sys
 import re
+import matplotlib.pyplot as plt
+import pandas as pd
 def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
   current_seq = ""
   seqs = []
@@ -23,7 +25,7 @@ def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
         return seqs
     else:
         return final_seq
-  
+
 def gc_content(seq):
   seq = seq.upper().strip()
   total_len = len(seq)
@@ -35,7 +37,7 @@ def gc_content(seq):
   gc_fraction = gc / total_len
   gc_percent = gc_fraction * 100
   return round(gc_fraction, 4), f"{gc_percent:.2f}%"
-  
+
 def at_content(seq):
   seq = seq.upper().strip()
   total_len = len(seq)
@@ -48,7 +50,7 @@ def at_content(seq):
   at_percent = (at_fraction * 100)
   return round(at_fraction, 4), f"{at_percent:.2f}%"
 
-def analyze_seq(sequence: str)-> None:
+def analyze_seq(sequence: str)-> dict:
   #it gets called multiple times if the fasta read result is a list,
   #it return none for now but later if u want to use for graphs and all u have to denote that it returns a dict
   sequence = sequence.upper().strip()
@@ -66,7 +68,7 @@ def analyze_seq(sequence: str)-> None:
   g_perc = (g / length) * 100
   c_perc = (c / length) * 100
   #calling defined funs
-  at_frac, at_perc = at_content(sequence) 
+  at_frac, at_perc = at_content(sequence)
   gc_frac, gc_perc = gc_content(sequence)
   print(f"Sequence length: {length}")
   print(f"A count: {a},({a_perc:.2f}%)")
@@ -75,10 +77,23 @@ def analyze_seq(sequence: str)-> None:
   print(f"C count: {c},({c_perc:.2f}%)")
   print(f"AT content: {at_frac},({at_perc})")
   print(f"GC content: {gc_frac},({gc_perc})")
+  result = {"length" : length,
+            "a_count" : a,
+            "t_count" : t,
+            "g_count" : g,
+            "c_count" : c,
+            "a_perc" : a_perc,
+            "t_perc" : t_perc,
+            "g_perc" : g_perc,
+            "c_perc" : c_perc,
+            "at_frac" : at_frac,
+            "at_perc" : at_perc,
+            "gc_frac" : gc_frac,
+            "gc_perc" : gc_perc}
+  return result
 
 
-
-if __name__ == "__main__": 
+if __name__ == "__main__":
   file_fasta = input("Enter the name of the FASTA file (e.g., example.fasta): ")
   if not os.path.isfile(file_fasta):
     print(f" XXXXX File not found: {file_fasta}")
@@ -91,13 +106,42 @@ if __name__ == "__main__":
   if isinstance(reading_fasta_result, str) and reading_fasta_result.strip() == "":
       print("empty sequence bro!!")
       sys.exit()
+  result = []
   if isinstance(reading_fasta_result, list):
     for i, seq in enumerate(reading_fasta_result):
       print(f"---Sequence {i + 1}---")
-      analyze_seq(seq)
+      result_dict = analyze_seq(seq)   #capture dict into variable
+      result.append(result_dict)
   else:
-    analyze_seq(reading_fasta_result)
+    print("---Concatenated Sequence---")
+    result_dict = analyze_seq(reading_fasta_result)
+    result.append(result_dict)
+  print(result)
+  graph = input("bro u wanna see cool grapht with len and gc content? (y/n)")
+  if graph.lower().startswith("y") or graph == "y":
+    graph_type = input("which type graph u want brotha? (1: Scatter, 2: Bar, 3: Pie): ")
+    if graph_type == "1":
+      lengths = [item['length'] for item in result]
+      gc_contents = [item['gc_frac'] for item in result]
+      plt.scatter(lengths, gc_contents)
+      plt.xlabel("Sequence Length")
+      plt.ylabel("GC Content (fraction)")
+      plt.title("GC Content vs Sequence Length")
+      plt.show()
+    elif graph_type == "2":
+      pass # bar code here
+    elif graph_type == "3":
+      pass # pie code here
+    else:
+        print("huh?")
+  else:
+    print("okay, cya <3 ")
+  #panda shit
+  df = pd.DataFrame(result)
+  df.to_csv("seq_stats.csv", index=False)
+  print("check for seq_stats.csv")
 
-# returning dic so i can plot or output it in csv instead of js printing maybe make empty seq fun later
-
-    
+'''Sequence filtering:Let the user keep only sequences above/below a certain length or GC%.
+histogram
+motif search,
+dna to protein '''
