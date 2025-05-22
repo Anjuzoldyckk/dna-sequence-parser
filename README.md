@@ -32,18 +32,23 @@
 
 All the test FASTA files you need are chilling in the `/test_cases` folder.  
 Run the script on any of those files to see what’s up.  
-No lame single-sequence examples here, go play with the real stuff.
 
----
+
+## Example FASTA to copy-paste
+
+seq1
+ATGCGTACGTTAGCTAGCTAGCTAGCTGACTGATCGTAGCTAGCTAGC
+seq2
+ATATATATATATATATATATATATATATATATATATATATATATATA
+seq3
+GCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCG
+
 
 ## Example CSV output
 
-(length,a_count,t_count,...etc)
+length,a_count,t_count,g_count,c_count,a_perc,t_perc,g_perc,c_perc,at_frac,at_perc,gc_frac,gc_perc
 61,15,15,16,15,24.59,24.59,26.23,24.59,0.4918,49.18%,0.5082,50.82%
 60,15,15,15,15,25.0,25.0,25.0,25.0,0.5,50.00%,0.5,50.00%
-...
-
----
 
 ## Requirements
 
