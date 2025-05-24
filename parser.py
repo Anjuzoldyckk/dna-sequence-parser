@@ -22,9 +22,9 @@ def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
       seqs.append(current_seq)
     final_seq = "".join(seqs)
     if x == 1:
-        return seqs
+        return headers,seqs
     else:
-        return final_seq
+        return headers,final_seq
 
 def gc_content(seq):
   seq = seq.upper().strip()
@@ -92,6 +92,57 @@ def analyze_seq(sequence: str)-> dict:
             "gc_perc" : gc_perc}
   return result
 
+def plot_gc_vs_length_scatter(result):
+  lengths = [item['length'] for item in result]
+  gc_contents = [item['gc_frac'] for item in result]
+  plt.scatter(lengths, gc_contents)
+  plt.xlabel("Sequence Length")
+  plt.ylabel("GC Content (fraction)")
+  plt.title("GC Content vs Sequence Length")
+  plt.show()
+
+def plot_gc_content_bar(result):
+  labels = [f"seq{i+1}" for i in range(len(result))]
+  gc_contents = [item['gc_frac'] for item in result]
+  plt.bar(labels, gc_contents)
+  plt.xlabel("sequence")
+  plt.ylabel("gc content (fraction)")
+  plt.title("GC Content per Sequence")
+  plt.show()
+
+def plot_base_pie(result, seq_index, headers=None):
+  base_counts = [
+      result[seq_index]['a_count'],
+      result[seq_index]['t_count'],
+      result[seq_index]['g_count'],
+      result[seq_index]['c_count'],
+      ]
+  base_labels = ['A', 'T', 'G', 'C']
+  plt.pie(base_counts, labels=base_labels, autopct='%1.1f%%')
+  if headers and seq_index < len(headers):
+    plt.title(f"Base Composition ({headers[seq_index]})")
+  else:
+    plt.title(f"Base Composition (Sequence {seq_index+1})")
+  plt.show()
+
+def plot_gc_histogram(result,bins = 8):
+  gc_list = [r['gc_frac'] for r in result]
+  plt.figure()
+  plt.hist(gc_list, bins = bins, edgecolor = "black")
+  plt.xlabel("GC Content(in frac)")
+  plt.ylabel("Frequency/no of seqs")
+  plt.title("GC Content distribution in histogram")
+  plt.show()
+
+
+def plot_gc_boxplot(result):
+  gc_list = [r['gc_frac'] for r in result]
+  plt.figure()
+  plt.boxplot(gc_list, vert = True) # vertical by default, change this to false for horizontal boxplot
+  plt.xlabel("all seqs")
+  plt.ylabel("GC Content")
+  plt.title("GC Content distribution in boxplot")
+  plt.show()
 
 if __name__ == "__main__":
   file_fasta = input("Enter the name of the FASTA file (e.g., example.fasta): ")
@@ -99,7 +150,7 @@ if __name__ == "__main__":
     print(f" XXXXX File not found: {file_fasta}")
     sys.exit()
   x = int(input("hello :)\nif u want individual seq then enter 1 or if u want all seqs in the file combined then enter 2 : "))
-  reading_fasta_result = read_fasta(file_fasta, x)
+  headers, reading_fasta_result = read_fasta(file_fasta, x)
   if isinstance(reading_fasta_result, list) and len(reading_fasta_result) == 0:
       print("empty sequence bro!!")
       sys.exit()
@@ -109,7 +160,7 @@ if __name__ == "__main__":
   result = []
   if isinstance(reading_fasta_result, list):
     for i, seq in enumerate(reading_fasta_result):
-      print(f"---Sequence {i + 1}---")
+      print(f"---Sequence {i + 1}---({headers[i]})")
       result_dict = analyze_seq(seq)   #capture dict into variable
       result.append(result_dict)
   else:
@@ -119,29 +170,59 @@ if __name__ == "__main__":
   print(result)
   graph = input("bro u wanna see cool grapht with len and gc content? (y/n)")
   if graph.lower().startswith("y") or graph == "y":
-    graph_type = input("which type graph u want brotha? (1: Scatter, 2: Bar, 3: Pie): ")
+    graph_type = input("which type graph u want brotha? (1: Scatter, 2: Bar, 3: Pie, 4: histogram, 5: boxplot): ")
     if graph_type == "1":
-      lengths = [item['length'] for item in result]
-      gc_contents = [item['gc_frac'] for item in result]
-      plt.scatter(lengths, gc_contents)
-      plt.xlabel("Sequence Length")
-      plt.ylabel("GC Content (fraction)")
-      plt.title("GC Content vs Sequence Length")
-      plt.show()
+      plot_gc_vs_length_scatter(result)
     elif graph_type == "2":
-      pass # bar code here
+      plot_gc_content_bar(result)
     elif graph_type == "3":
-      pass # pie code here
+      max_to_show = 20 #how many headers can be seen
+      num_to_show = min(len(headers), max_to_show)
+      print(f"there are {len(headers)} in ur file brotha")
+      print(f"showing the headers of {num_to_show} seqs")
+      for i in range(num_to_show):
+        print(f"{i+1}: {headers[i]}")
+      seq_index = None
+      while True:
+        user_input = input(f"gimme the seq num (1 to {num_to_show} for pie chart, or q for quitting)").strip()
+        if user_input == 'q':
+          break
+        try:
+          choice_seq = int(user_input)
+          if 1 <= choice_seq <= num_to_show:
+            seq_index = choice_seq - 1
+            break
+        except ValueError:
+          print("print a valid num bruh, or q for quit")
+      if seq_index is not None:
+        plot_base_pie(result, seq_index, headers)
+
+    elif graph_type == '4':
+      plot_gc_histogram(result)
+    elif graph_type == '5':
+      plot_gc_boxplot(result)
     else:
         print("huh?")
   else:
     print("okay, cya <3 ")
-  #panda shit
+  #panda export for csv
   df = pd.DataFrame(result)
   df.to_csv("seq_stats.csv", index=False)
   print("check for seq_stats.csv")
 
-'''Sequence filtering:Let the user keep only sequences above/below a certain length or GC%.
-histogram
+'''
+add doc strings
+give max gc content as output, annotate the outliers
+learn about argparse and change it fro0m input() to argparse
+Sequence filtering:Let the user keep only sequences above/below a certain length or GC%.
+Write some basic test sequences to test your script automatically.
+Refactor plotting: Later, consider putting all plot functions in a plots.py file (when the script grows).
 motif search,
-dna to protein '''
+dna to protein
+Write filtered sequences back to a new FASTA file.
+Show a table (or output file) with frequencies of all bases for each sequence.
+Implement a function to get the reverse complement of a DNA sequence.
+Count and report on non-ATGC bases (e.g., N, R, Y).
+HEATMAP
+set up vs code
+Write a tiny FASTA file (e.g. one sequence “ATGCNN”), load it, and assert counts/percentages with pytest'''
