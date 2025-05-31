@@ -4,6 +4,15 @@ import re
 import matplotlib.pyplot as plt
 import pandas as pd
 def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
+  """
+    Read a FASTA file and grab sequences, bro.
+    Args:
+        file (str): Path to your FASTA file.
+        x (int): 1 to get individual seqs, else concat all.
+    Returns:
+        If x == 1: (headers, [seq1, seq2, ...])
+        Else:     (headers, "all_sequences_combined")
+    """
   current_seq = ""
   seqs = []
   headers=[]
@@ -27,6 +36,13 @@ def read_fasta(file,x=2): #x is tells if user wants individual or concat seqs
         return headers,final_seq
 
 def gc_content(seq):
+  """
+    Compute GC fraction & percent, dude.
+    Args:
+        seq (str): DNA string (can be mixed case/whitespace).
+    Returns:
+        (gc_fraction, "xx.xx%")
+    """
   seq = seq.upper().strip()
   total_len = len(seq)
   if total_len == 0:
@@ -39,6 +55,13 @@ def gc_content(seq):
   return round(gc_fraction, 4), f"{gc_percent:.2f}%"
 
 def at_content(seq):
+  """
+    Compute AT fraction & percent, fam.
+    Args:
+        seq (str): DNA string (can be mixed case/whitespace).
+    Returns:
+        (at_fraction, "xx.xx%")
+    """
   seq = seq.upper().strip()
   total_len = len(seq)
   if total_len == 0:
@@ -51,6 +74,22 @@ def at_content(seq):
   return round(at_fraction, 4), f"{at_percent:.2f}%"
 
 def analyze_seq(sequence: str)-> dict:
+  """
+    Print & collect basic stats for one DNA seq, brotha.
+    Args:
+        sequence (str): Single DNA string (mixed case/whitespace OK).
+    Returns:
+        dict: {
+            "length": int,
+            "a_count": int, "t_count": int,
+            "g_count": int, "c_count": int,
+            "a_perc": float, "t_perc": float,
+            "g_perc": float, "c_perc": float,
+            "at_frac": float, "at_perc": "xx.xx%",
+            "gc_frac": float, "gc_perc": "xx.xx%"
+        }
+        Prints warning & returns None if empty.
+    """
   #it gets called multiple times if the fasta read result is a list,
   #it return none for now but later if u want to use for graphs and all u have to denote that it returns a dict
   sequence = sequence.upper().strip()
@@ -93,6 +132,11 @@ def analyze_seq(sequence: str)-> dict:
   return result
 
 def plot_gc_vs_length_scatter(result):
+   """
+    Scatter: seq length vs GC fraction, y'all.
+    Args:
+        result (list of dict): output from analyze_seq per seq.
+    """
   lengths = [item['length'] for item in result]
   gc_contents = [item['gc_frac'] for item in result]
   plt.scatter(lengths, gc_contents)
@@ -102,6 +146,11 @@ def plot_gc_vs_length_scatter(result):
   plt.show()
 
 def plot_gc_content_bar(result):
+  """
+    Bar chart of GC fraction per seq, fam.
+    Args:
+        result (list of dict): output from analyze_seq per seq.
+    """
   labels = [f"seq{i+1}" for i in range(len(result))]
   gc_contents = [item['gc_frac'] for item in result]
   plt.bar(labels, gc_contents)
@@ -111,6 +160,13 @@ def plot_gc_content_bar(result):
   plt.show()
 
 def plot_base_pie(result, seq_index, headers=None):
+   """
+    Pie chart of A/T/G/C counts for one seq, bro.
+    Args:
+        result (list of dict): output from analyze_seq per seq.
+        seq_index (int): which seq to plot (0-based).
+        headers (list of str, optional): seq names to show in title.
+    """
   base_counts = [
       result[seq_index]['a_count'],
       result[seq_index]['t_count'],
@@ -126,6 +182,12 @@ def plot_base_pie(result, seq_index, headers=None):
   plt.show()
 
 def plot_gc_histogram(result,bins = 8):
+  """
+    Histogram of GC fraction across all seqs, dude.
+    Args:
+        result (list of dict): output from analyze_seq per seq.
+        bins (int): number of bins for histogram.
+    """
   gc_list = [r['gc_frac'] for r in result]
   plt.figure()
   plt.hist(gc_list, bins = bins, edgecolor = "black")
@@ -136,6 +198,11 @@ def plot_gc_histogram(result,bins = 8):
 
 
 def plot_gc_boxplot(result):
+   """
+    Boxplot of GC fraction for all seqs, brotha.
+    Args:
+        result (list of dict): output from analyze_seq per seq.
+    """
   gc_list = [r['gc_frac'] for r in result]
   plt.figure()
   plt.boxplot(gc_list, vert = True) # vertical by default, change this to false for horizontal boxplot
@@ -211,7 +278,6 @@ if __name__ == "__main__":
   print("check for seq_stats.csv")
 
 '''
-add doc strings
 give max gc content as output, annotate the outliers
 learn about argparse and change it fro0m input() to argparse
 Sequence filtering:Let the user keep only sequences above/below a certain length or GC%.
