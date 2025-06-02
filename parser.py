@@ -210,41 +210,45 @@ def plot_gc_boxplot(result):
   plt.ylabel("GC Content")
   plt.title("GC Content distribution in boxplot")
   plt.show()
-def translater(seq, frame=0):
-    table = """
-TTT F Phe      TCT S Ser      TAT Y Tyr      TGT C Cys  
-TTC F Phe      TCC S Ser      TAC Y Tyr      TGC C Cys  
-TTA L Leu      TCA S Ser      TAA * Ter      TGA * Ter  
-TTG L Leu i    TCG S Ser      TAG * Ter      TGG W Trp  
-
-CTT L Leu      CCT P Pro      CAT H His      CGT R Arg  
-CTC L Leu      CCC P Pro      CAC H His      CGC R Arg  
-CTA L Leu      CCA P Pro      CAA Q Gln      CGA R Arg  
-CTG L Leu i    CCG P Pro      CAG Q Gln      CGG R Arg  
-
-ATT I Ile      ACT T Thr      AAT N Asn      AGT S Ser  
-ATC I Ile      ACC T Thr      AAC N Asn      AGC S Ser  
-ATA I Ile      ACA T Thr      AAA K Lys      AGA R Arg  
-ATG M Met i    ACG T Thr      AAG K Lys      AGG R Arg  
-
-GTT V Val      GCT A Ala      GAT D Asp      GGT G Gly  
-GTC V Val      GCC A Ala      GAC D Asp      GGC G Gly  
-GTA V Val      GCA A Ala      GAA E Glu      GGA G Gly  
-GTG V Val      GCG A Ala      GAG E Glu      GGG G Gly  
-"""
-    table = table.upper().split()
-    table = [t for t in table if t != "I"] #to remove stray tokens
-    token = [table[i:i+3] for i in range(0, len(table), 3)]
-    codon_table = {codon: (single, three) for codon, single, three in token}
-    proteins=[]
-    for i in range(frame,len(seq)-2,3):
-      codon = seq[i:i+3]
-      aa = codon_table.get(codon, ("X","X")) #x being default, and not to crash the prog by crashing
-      aa = aa[0] #to only allow the single in the list omitting the tuple 
-      proteins.append(aa)
-    proteins = "".join(proteins)
-    print(f"the translated protein is {proteins}")
-    return proteins
+def translater(seq, frame=0)-> str:
+  '''
+  translate the dna seq (fasta result) into protein str in codons, if codon isnt found then "X" is returned
+  '''
+  seq = seq.upper().strip()
+  table = """
+  TTT F Phe      TCT S Ser      TAT Y Tyr      TGT C Cys  
+  TTC F Phe      TCC S Ser      TAC Y Tyr      TGC C Cys  
+  TTA L Leu      TCA S Ser      TAA * Ter      TGA * Ter  
+  TTG L Leu i    TCG S Ser      TAG * Ter      TGG W Trp  
+  
+  CTT L Leu      CCT P Pro      CAT H His      CGT R Arg  
+  CTC L Leu      CCC P Pro      CAC H His      CGC R Arg  
+  CTA L Leu      CCA P Pro      CAA Q Gln      CGA R Arg  
+  CTG L Leu i    CCG P Pro      CAG Q Gln      CGG R Arg  
+  
+  ATT I Ile      ACT T Thr      AAT N Asn      AGT S Ser  
+  ATC I Ile      ACC T Thr      AAC N Asn      AGC S Ser  
+  ATA I Ile      ACA T Thr      AAA K Lys      AGA R Arg  
+  ATG M Met i    ACG T Thr      AAG K Lys      AGG R Arg  
+  
+  GTT V Val      GCT A Ala      GAT D Asp      GGT G Gly  
+  GTC V Val      GCC A Ala      GAC D Asp      GGC G Gly  
+  GTA V Val      GCA A Ala      GAA E Glu      GGA G Gly  
+  GTG V Val      GCG A Ala      GAG E Glu      GGG G Gly  
+  """
+  table = table.upper().split()
+  table = [t for t in table if t != "I"] #to remove stray tokens
+  token = [table[i:i+3] for i in range(0, len(table), 3)]
+  codon_table = {codon: (single, three) for codon, single, three in token}
+  proteins=[]
+  for i in range(frame,len(seq)-2,3):
+    codon = seq[i:i+3]
+    aa = codon_table.get(codon, ("X","X")) #x being default, and not to crash the prog by crashing
+    aa = aa[0] #to only allow the single in the list omitting the tuple 
+    proteins.append(aa)
+  proteins = "".join(proteins)
+  print(f"the translated protein is {proteins}")
+  return proteins
 
 if __name__ == "__main__":
   file_fasta = input("Enter the name of the FASTA file (e.g., example.fasta): ")
